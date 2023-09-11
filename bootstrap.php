@@ -4,12 +4,19 @@
  */
 
 use Predis\Client;
+use DI\Bridge\Slim\Bridge;
+use DI\Container;
+
+require __DIR__ . '/config.php';
 
 require __DIR__ . '/vendor/autoload.php';
-require __DIR__ . '/config.php';
+
+$container = new Container;
 
 /** @var array $config */
 $redis = new Client($config['redis']);
 
-$container->set(Client::class, $redis);
+$container->set('redis', $redis);
+
+$app = Bridge::create($container);
 
