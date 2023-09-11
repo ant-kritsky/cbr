@@ -26,7 +26,10 @@ class ApiController
         $base = $params['base'] ?? self::BASE_CURRENCY;
 
         if (is_null($date) || is_null($currency)) {
-            return $response->withStatus(400)->withBody('Parammeters "date" and "currency" is required!');
+            $response = $response->withStatus(400);
+            $response->getBody()->write('Parameters "date" and "currency" is required!');
+
+            return $response->withHeader('Content-Type', 'application/json');
         }
 
         $rate = $this->redis->get($currency . ':' . $base);
