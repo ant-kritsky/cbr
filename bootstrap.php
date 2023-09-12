@@ -1,11 +1,8 @@
 <?php
-/**
- * @var \DI\Container $container
- */
 
-use Predis\Client;
-use DI\Bridge\Slim\Bridge;
 use DI\Container;
+use Predis\Client;
+use PhpAmqpLib\Connection\AMQPStreamConnection;
 
 require __DIR__ . '/config.php';
 
@@ -18,5 +15,14 @@ $redis = new Client($config['redis']);
 
 $container->set('redis', $redis);
 
-$app = Bridge::create($container);
+$connection = new AMQPStreamConnection(
+    $config['AMQP']['host'],
+    $config['AMQP']['port'],
+    $config['AMQP']['user'],
+    $config['AMQP']['password']
+);
+$container->set('rabbit_connection', $connection);
 
+$channel = $connection->channel();
+$channel->queue_declare('date_queue', false, false, false, false);
+$container->set('rabbit_channel', $channel);
