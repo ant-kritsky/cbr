@@ -2,44 +2,45 @@
 
 namespace App;
 
-use DI\Container;
+use \GuzzleHttp\Client;
 
-class CbrCurrencyRateFetcher {
+class CbrCurrencyRateFetcher
+{
+    const STATUS_OK = 200;
     const API_ENDPOINT = 'http://www.cbr.ru/scripts/XML_daily.asp';
-    private $container;
-
-    function __construct(Container $container)
-    {
-        $this->container = $container;
-    }
 
     /**
      * Получение курсов валют
      *
-     * @param string $date Дата в формате "dd.mm.yyyy". Если не указана, используется текущая дата.
+     * @param string $date Дата в формате "dd.mm.yyyy".
      * @return array Курсы валют
      */
-    public function getRates($date = null) {
+    static public function getRates($date = null)
+    {
         $url = self::API_ENDPOINT;
 
-        if (!empty($date)) { // TODO: pregmatch date
+        if (!empty($date)) {
+            $date = date("d/m/Y", strtotime($date));
             $url .= '?date_req=' . $date;
         }
 
-        $xmlContent = file_get_contents($url);
-        if (!$xmlContent) {
-            throw new \Exception("Ошибка при получении данных с cbr.ru");
+        $client = new Client();
+        $response = $client->request('GET', $url);
+        $responseStatus = $response->getStatusCode();
+
+        if ($responseStatus != self::STATUS_OK) {
+            echo "Ошибка при получении данных с cbr.ru. Статус: " . $responseStatus;
+            exit;
         }
 
-        $xml = simplexml_load_string($xmlContent);
+        $xml = simplexml_load_string($response->getBody());
 
         $rates = [];
         foreach ($xml->Valute as $valute) {
-            var_dump($valute->CharCode);
-            $rates[(string) $valute->CharCode] = [
-                'name' => (string) $valute->Name,
-                'value' => (float) str_replace(',', '.', $valute->Value),
-                'nominal' => (int) $valute->Nominal
+            $rates[(string)$valute->CharCode] = [
+                'name' => (string)$valute->Name,
+                'value' => (float)str_replace(',', '.', $valute->Value),
+                'nominal' => (int)$valute->Nominal
             ];
         }
 

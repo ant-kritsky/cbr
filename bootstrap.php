@@ -1,28 +1,13 @@
 <?php
 
-use DI\Container;
-use Predis\Client;
-use PhpAmqpLib\Connection\AMQPStreamConnection;
-
-require __DIR__ . '/config.php';
+const RABBIT_CONNECTION = 'rabbit_connection';
+const RABBIT_CHANEL = 'rabbit_channel';
+const RABBIT_QUEUE = 'date_queue';
 
 require __DIR__ . '/vendor/autoload.php';
 
-$container = new Container;
+$builder = new \DI\ContainerBuilder();
+$builder->addDefinitions('di.php');
 
-/** @var array $config */
-$redis = new Client($config['redis']);
+$container = $builder->build();
 
-$container->set('redis', $redis);
-
-$connection = new AMQPStreamConnection(
-    $config['AMQP']['host'],
-    $config['AMQP']['port'],
-    $config['AMQP']['user'],
-    $config['AMQP']['password']
-);
-$container->set('rabbit_connection', $connection);
-
-$channel = $connection->channel();
-$channel->queue_declare('date_queue', false, false, false, false);
-$container->set('rabbit_channel', $channel);
