@@ -4,7 +4,7 @@ namespace App\Controller;
 
 use App\CurrencyRate;
 use App\Queue;
-use \Predis\Client as Redis;
+use Predis\Client as Redis;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use DI\Container;
